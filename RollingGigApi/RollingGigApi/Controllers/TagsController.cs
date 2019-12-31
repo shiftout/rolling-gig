@@ -23,14 +23,27 @@ namespace RollingGigApi.Controllers
 
         // GET: api/Tags
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Tag>>> GetTags()
+        public async Task<ActionResult<IEnumerable<TagDetailsViewModel>>> GetTags()
         {
-            return await _context.Tags.ToListAsync();
+            var tags = await _context.Tags.ToListAsync();
+            
+            var model = new List<TagDetailsViewModel>();
+            foreach (var tag in tags)
+            {
+                model.Add(new TagDetailsViewModel
+                {
+                    Id = tag.Id,
+                    Name = tag.Name,
+                    LastModified = tag.LastModified
+                });
+            }
+
+            return model;
         }
 
         // GET: api/Tags/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Tag>> GetTag(long id)
+        public async Task<ActionResult<TagDetailsViewModel>> GetTag(long id)
         {
             var tag = await _context.Tags.FindAsync(id);
 
@@ -39,14 +52,21 @@ namespace RollingGigApi.Controllers
                 return NotFound();
             }
 
-            return tag;
+            var model = new TagDetailsViewModel
+            {
+                Id = tag.Id,
+                Name = tag.Name,
+                LastModified = tag.LastModified
+            };
+
+            return model;
         }
 
         // PUT: api/Tags/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTag(long id, TagViewModel model)
+        public async Task<IActionResult> PutTag(long id, TagCreateEditViewModel model)
         {
             if (id != model.Id)
             {
@@ -87,7 +107,7 @@ namespace RollingGigApi.Controllers
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPost]
-        public async Task<ActionResult<Tag>> PostTag(TagViewModel model)
+        public async Task<ActionResult<Tag>> PostTag(TagCreateEditViewModel model)
         {
             var tag = new Tag
             {

@@ -23,30 +23,73 @@ namespace RollingGigApi.Controllers
 
         // GET: api/TodoItems
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TodoItem>>> GetTodoItems()
+        public async Task<ActionResult<IEnumerable<TodoItemDetailsViewModel>>> GetTodoItems()
         {
-            return await _context.TodoItems.ToListAsync();
+            var todoItems =  await _context.TodoItems.Include(x => x.TodoItemTags).ThenInclude(x => x.Tag).ToListAsync();
+            
+            var model = new List<TodoItemDetailsViewModel>();
+            foreach (var todoItem in todoItems)
+            {
+                var item = new TodoItemDetailsViewModel
+                {
+                    Id = todoItem.Id,
+                    Title = todoItem.Title,
+                    IsComplete = todoItem.IsComplete,
+                    LastModified = todoItem.LastModified
+                };
+
+                foreach (var tag in todoItem.TodoItemTags)
+                {
+                    item.Tags.Add(new TagDetailsViewModel {
+                        Id = tag.Tag.Id,
+                        Name = tag.Tag.Name,
+                        LastModified = tag.Tag.LastModified
+                    });
+                }
+
+                model.Add(item);
+            }
+
+            return model;
         }
 
         // GET: api/TodoItems/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<TodoItem>> GetTodoItem(long id)
+        public async Task<ActionResult<TodoItemDetailsViewModel>> GetTodoItem(long id)
         {
-            var todoItem = await _context.TodoItems.FindAsync(id);
+            var todoItem = await _context.TodoItems.Include(x => x.TodoItemTags).ThenInclude(x => x.Tag).FirstOrDefaultAsync(x => x.Id == id);
 
             if (todoItem == null)
             {
                 return NotFound();
             }
 
-            return todoItem;
+            var model = new TodoItemDetailsViewModel
+            {
+                Id = todoItem.Id,
+                IsComplete = todoItem.IsComplete,
+                Title = todoItem.Title,
+                LastModified = todoItem.LastModified
+            };
+
+            foreach (var tag in todoItem.TodoItemTags)
+            {
+                model.Tags.Add(new TagDetailsViewModel
+                {
+                    Id = tag.Tag.Id,
+                    Name = tag.Tag.Name,
+                    LastModified = tag.Tag.LastModified
+                });
+            }
+
+            return model;
         }
 
         // PUT: api/TodoItems/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTodoItem(long id, TodoItemViewModel model)
+        public async Task<IActionResult> PutTodoItem(long id, TodoItemCreateEditViewModel model)
         {
             if (id != model.Id)
             {
@@ -62,6 +105,11 @@ namespace RollingGigApi.Controllers
             todoItem.Title = model.Title;
             todoItem.IsComplete = model.IsComplete;
             todoItem.LastModified = DateTime.Now;
+            todoItem.TodoItemTags = new List<TodoItemTag>();
+            foreach (var tag in model.Tags)
+            {
+                todoItem.TodoItemTags.Add(new TodoItemTag { TagId = tag.Id });
+            }
 
             _context.Entry(todoItem).State = EntityState.Modified;
 
@@ -88,15 +136,21 @@ namespace RollingGigApi.Controllers
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPost]
-        public async Task<ActionResult<TodoItem>> PostTodoItem(TodoItemViewModel model)
+        public async Task<ActionResult<TodoItem>> PostTodoItem(TodoItemCreateEditViewModel model)
         {
             var todoItem = new TodoItem
             {
                 Title = model.Title,
                 IsComplete = false,
-                LastModified = DateTime.Now
+                LastModified = DateTime.Now,
+                TodoItemTags = new List<TodoItemTag>()
             };
             
+            foreach (var tag in model.Tags)
+            {
+                todoItem.TodoItemTags.Add(new TodoItemTag { TagId = tag.Id });
+            }
+
             _context.TodoItems.Add(todoItem);
             await _context.SaveChangesAsync();
 

@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace RollingGigApi.Models
+namespace RollingGigApi.ViewModels
 {
-    public class TodoItem
+    public class TodoItemCreateEditViewModel
     {
         public long Id { get; set; }
         public string Title { get; set; }
         public bool IsComplete { get; set; }
-        public DateTime LastModified { get; set; }
 
-        public ICollection<TodoItemTag> TodoItemTags { get; set; }
+        public ICollection<TagCreateEditViewModel> Tags { get; set; }
     }
 }

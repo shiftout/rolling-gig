@@ -10,5 +10,7 @@ namespace RollingGigApi.Models
         public long Id { get; set; }
         public string Name { get; set; }
         public DateTime LastModified { get; set; }
+
+        public ICollection<TodoItemTag> TodoItemTags { get; set; }
     }
 }

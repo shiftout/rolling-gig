@@ -5,9 +5,10 @@ using System.Threading.Tasks;
 
 namespace RollingGigApi.ViewModels
 {
-    public class TagViewModel
+    public class TagDetailsViewModel
     {
         public long Id { get; set; }
         public string Name { get; set; }
+        public DateTime LastModified { get; set; }
     }
 }
