@@ -12,5 +12,10 @@ namespace RollingGigApi.ViewModels
         public bool IsComplete { get; set; }
 
         public ICollection<TagCreateEditViewModel> Tags { get; set; }
+
+        public TodoItemCreateEditViewModel()
+        {
+            Tags = new List<TagCreateEditViewModel>();
+        }
     }
 }
