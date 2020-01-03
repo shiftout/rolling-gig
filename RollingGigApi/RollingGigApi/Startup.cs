@@ -22,11 +22,19 @@ namespace RollingGigApi
             Configuration = configuration;
         }
 
+        private readonly string _corsPolicy = "allowAllOrigins";
+
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(o => o.AddPolicy(_corsPolicy, builder =>
+            {
+                builder.AllowAnyOrigin()
+                       .AllowAnyMethod()
+                       .AllowAnyHeader();
+            }));
             services.AddDbContext<RollingGigContext>(opt => opt.UseSqlServer(Configuration.GetConnectionString("RollingGigContext")));
             services.AddControllers().AddNewtonsoftJson(x => x.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
         }
@@ -38,6 +46,8 @@ namespace RollingGigApi
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseCors(_corsPolicy);
 
             app.UseHttpsRedirection();
 
