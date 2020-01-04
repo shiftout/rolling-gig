@@ -1,13 +1,13 @@
-﻿const uri = 'https://localhost:44307/api/';
+﻿const uri = 'https://localhost:44307/api';
 let todos = [];
 
 function getItems() {
-    fetch(uri + 'todoitems')
+    fetch(uri + '/todoitems')
         .then(response => response.json())
         .then(data => _displayTodoItems(data))
         .catch(error => console.error('Unable to get items.', error));
 
-    fetch(uri + 'tags')
+    fetch(uri + '/tags')
         .then(response => response.json())
         // .then(data => _displayTags(data))
         .then(data => _displayCount('tags-counter', data.length))
@@ -22,7 +22,7 @@ function addItem() {
         title: addNameTextbox.value.trim()
     };
 
-    fetch(uri, {
+    fetch(`${uri}/todoitems`, {
         method: 'POST',
         headers: {
             'Accept': 'application/json',
@@ -39,7 +39,7 @@ function addItem() {
 }
 
 function deleteItem(id) {
-    fetch(`${uri}/${id}`, {
+    fetch(`${uri}/todoitems/${id}`, {
         method: 'DELETE'
     })
         .then(() => getItems())
@@ -110,8 +110,8 @@ function _displayTodoItems(data) {
             <h5 class="card-title">${item.title}</h5>
             <h6 class="card-subtitle mb-2 text-muted">#${item.id}, ${tags}</h6>
             <p class="card-text"></p>
-            <a href="#" class="btn btn-outline-success">Close</a>
-            <a href="#" class="btn btn-outline-danger">Delete</a>
+            <a href="javascript:void(0)" class="btn btn-outline-success">Close</a>
+            <a href="javascript:void(0)" onclick="deleteItem(${item.id})" class="btn btn-outline-danger">Delete</a>
         </div>
         <div class="card-footer text-muted">
             Last modified: ${item.lastModified} 
