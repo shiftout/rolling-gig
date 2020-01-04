@@ -1,11 +1,17 @@
-﻿const uri = 'https://localhost:44307/api/todoitems';
+﻿const uri = 'https://localhost:44307/api/';
 let todos = [];
 
 function getItems() {
-    fetch(uri)
+    fetch(uri + 'todoitems')
         .then(response => response.json())
-        .then(data => _displayItems(data))
+        .then(data => _displayTodoItems(data))
         .catch(error => console.error('Unable to get items.', error));
+
+    fetch(uri + 'tags')
+        .then(response => response.json())
+        // .then(data => _displayTags(data))
+        .then(data => _displayCount('tags-counter', data.length))
+        .catch(error => console.error('Unable to get tags.', error));        
 }
 
 function addItem() {
@@ -77,48 +83,43 @@ function closeInput() {
     document.getElementById('editForm').style.display = 'none';
 }
 
-function _displayCount(itemCount) {
-    document.getElementById('todos-counter').innerText = `${itemCount}`;
+function _displayCount(elementId, itemCount) {
+    document.getElementById(elementId).innerText = `${itemCount}`;
 }
 
-function _displayItems(data) {
-    const tBody = document.getElementById('todos');
-    tBody.innerHTML = '';
+function _displayTodoItems(data) {
+    _displayCount('todos-counter', data.length);
+    
+    const container = document.getElementById('todos-container');
+    container.classList.add('card-columns');
+    container.innerHTML = '';
 
-    _displayCount(data.length);
+    // alert(JSON.stringify(data));
 
     const button = document.createElement('button');
     button.classList.add('btn', 'btn-sm', 'btn-secondary');
 
     data.forEach(item => {
-        let isCompleteCheckbox = document.createElement('input');
-        isCompleteCheckbox.type = 'checkbox';
-        isCompleteCheckbox.disabled = true;
-        isCompleteCheckbox.checked = item.isComplete;
+        let card = document.createElement('div');
+        card.classList.add('card');
 
-        let editButton = button.cloneNode(false);
-        editButton.innerText = 'Edit';
-        editButton.setAttribute('onclick', `displayEditForm(${item.id})`);
+        let tags = (item.tags.length > 0) ? 'tags: ' + item.tags.map(t => t.name).join(',') : 'no tags';
 
-        let deleteButton = button.cloneNode(false);
-        deleteButton.innerText = 'Delete';
-        deleteButton.setAttribute('onclick', `deleteItem(${item.id})`);
-
-        let tr = tBody.insertRow();
-
-        let td1 = tr.insertCell(0);
-        td1.appendChild(isCompleteCheckbox);
-
-        let td2 = tr.insertCell(1);
-        let textNode = document.createTextNode(item.title);
-        td2.appendChild(textNode);
-
-        let td3 = tr.insertCell(2);
-        td3.appendChild(editButton);
-
-        let td4 = tr.insertCell(3);
-        td4.appendChild(deleteButton);
+        card.innerHTML = `
+        <div class="card-body">
+            <h5 class="card-title">${item.title}</h5>
+            <h6 class="card-subtitle mb-2 text-muted">#${item.id}, ${tags}</h6>
+            <p class="card-text"></p>
+            <a href="#" class="btn btn-outline-success">Close</a>
+            <a href="#" class="btn btn-outline-danger">Delete</a>
+        </div>
+        <div class="card-footer text-muted">
+            Last modified: ${item.lastModified} 
+        </div>
+        `;
+        container.appendChild(card);
+        linebreak = document.createElement('br');
+        container.appendChild(linebreak);
     });
 
-    todos = data;
 }
