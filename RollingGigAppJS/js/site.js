@@ -46,24 +46,12 @@ function deleteItem(id) {
         .catch(error => console.error('Unable to delete item.', error));
 }
 
-function displayEditForm(id) {
-    const item = todos.find(item => item.id === id);
+function updateItemTitle(id, title) {
+    itemId = parseInt(id, 10);
+    item = todos.find(item => item.id === itemId);
+    item.title = title;
 
-    document.getElementById('edit-title').value = item.title;
-    document.getElementById('edit-id').value = item.id;
-    document.getElementById('edit-isComplete').checked = item.isComplete;
-    document.getElementById('editForm').style.display = 'block';
-}
-
-function updateItem() {
-    const itemId = document.getElementById('edit-id').value;
-    const item = {
-        id: parseInt(itemId, 10),
-        isComplete: document.getElementById('edit-isComplete').checked,
-        title: document.getElementById('edit-title').value.trim()
-    };
-
-    fetch(`${uri}/${itemId}`, {
+    fetch(`${uri}/todoitems/${itemId}`, {
         method: 'PUT',
         headers: {
             'Accept': 'application/json',
@@ -73,14 +61,23 @@ function updateItem() {
     })
         .then(() => getItems())
         .catch(error => console.error('Unable to update item.', error));
-
-    closeInput();
-
-    return false;
 }
 
-function closeInput() {
-    document.getElementById('editForm').style.display = 'none';
+function toggleItemStatus(id) {
+    itemId = parseInt(id, 10);
+    item = todos.find(item => item.id === itemId);
+    item.isComplete = !item.isComplete;
+
+    fetch(`${uri}/todoitems/${itemId}`, {
+        method: 'PUT',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(item)
+    })
+        .then(() => getItems())
+        .catch(error => console.error('Unable to update item.', error));
 }
 
 function _displayCount(elementId, itemCount) {
@@ -94,8 +91,6 @@ function _displayTodoItems(data) {
     container.classList.add('card-columns');
     container.innerHTML = '';
 
-    // alert(JSON.stringify(data));
-
     const button = document.createElement('button');
     button.classList.add('btn', 'btn-sm', 'btn-secondary');
 
@@ -103,23 +98,40 @@ function _displayTodoItems(data) {
         let card = document.createElement('div');
         card.classList.add('card');
 
-        let tags = (item.tags.length > 0) ? 'tags: ' + item.tags.map(t => t.name).join(',') : 'no tags';
+        let tags = (item.tags.length > 0) ? '<img src="img/tag.svg"> ' + item.tags.map(t => t.name).join(',') : 'no tags';
 
-        card.innerHTML = `
-        <div class="card-body">
-            <h5 class="card-title">${item.title}</h5>
-            <h6 class="card-subtitle mb-2 text-muted">#${item.id}, ${tags}</h6>
-            <p class="card-text"></p>
-            <a href="javascript:void(0)" class="btn btn-outline-success">Close</a>
-            <a href="javascript:void(0)" onclick="deleteItem(${item.id})" class="btn btn-outline-danger">Delete</a>
-        </div>
-        <div class="card-footer text-muted">
-            Last modified: ${item.lastModified} 
-        </div>
-        `;
+        if (item.isComplete) {
+            card.innerHTML = `
+            <div class="card-body bg-light">
+                <h5 class="card-title">${item.title}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">#${item.id}, ${tags}</h6>
+                <p class="card-text"></p>
+                <a href="javascript:void(0)" onclick="toggleItemStatus(${item.id})" class="btn btn-outline-warning">Re-open</a>
+                <a href="javascript:void(0)" onclick="deleteItem(${item.id})" class="btn btn-outline-danger">Delete</a>
+            </div>
+            <div class="card-footer text-muted">
+                Last modified: ${item.lastModified} 
+            </div>
+            `;
+        } else {
+            card.innerHTML = `
+            <div class="card-body">
+                <h5 class="card-title">${item.title}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">#${item.id}, ${tags}</h6>
+                <p class="card-text"></p>
+                <a href="javascript:void(0)" onclick="toggleItemStatus(${item.id})" class="btn btn-outline-success">Close</a>
+                <a href="javascript:void(0)" onclick="deleteItem(${item.id})" class="btn btn-outline-danger">Delete</a>
+            </div>
+            <div class="card-footer text-muted">
+                Last modified: ${item.lastModified} 
+            </div>
+            `;
+        }
+
         container.appendChild(card);
         linebreak = document.createElement('br');
         container.appendChild(linebreak);
     });
 
+    todos = data;
 }

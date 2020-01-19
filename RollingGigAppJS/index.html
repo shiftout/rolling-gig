@@ -48,7 +48,7 @@
             <div class="card-body">
                 <h5 class="card-title">Keep on rolling</h5>
                 <h6 class="card-subtitle mb-2 text-muted"><span id="todos-counter"></span> ToDos. <span id="tags-counter"></span> Tags.</h6>
-                <p class="card-text">Use semicolons (<code>;</code>) for tagging.</p>
+                <p class="card-text"></p>
                 <form action="javascript:void(0);" method="POST" onsubmit="addItem()">
                     <div class="input-group mb-3">
                         <input type="text" class="form-control" id="add-todo-title" placeholder="Any spare thoughts?" aria-describedby="button-addon2">
@@ -60,7 +60,7 @@
             </div>
             <div class="card-footer">
             </div>
-        </div>
+        </div>  
 
         <div class="card" id="editForm" style="display: none;">
             <div class="card-body">
@@ -80,10 +80,6 @@
 
         <div id="todos-container"></div>
 
-        <table>
-            <tbody id="todos"></tbody>
-        </table>
-
     </div>
 
     <!-- Optional JavaScript -->
@@ -97,10 +93,28 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
         integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
         crossorigin="anonymous"></script>
-
+    
     <script src="js/site.js"></script>
     <script type="text/javascript">
-        getItems();
+        $( document ).ready(function() {
+            getItems();
+
+            $('#todos-container').on('dblclick', 'h5', function() {
+                var itemId = $(this).next().text().split(",")[0].split("#")[1];
+                var oldTitle = $(this).text();
+                var input = $('<input id="edit-title" type="text" class="form-control" /><br/>');
+                input.val(oldTitle);
+
+                $(this).replaceWith(input);
+                input.blur(function () {
+                    var newTitle = $(this).val();
+                    updateItemTitle(itemId, newTitle);
+                    $(this).next().remove();
+                    $(this).replaceWith($('<h5 class="card-title">' + newTitle + '</h5>'));
+                });
+            });
+
+        });
     </script>
 
 </body>
