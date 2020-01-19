@@ -96,7 +96,7 @@ namespace RollingGigApi.Controllers
                 return BadRequest();
             }
 
-            var todoItem = await _context.TodoItems.FindAsync(id);
+            var todoItem = await _context.TodoItems.Include(x => x.TodoItemTags).ThenInclude(x => x.Tag).FirstOrDefaultAsync(x => x.Id == id);
             if (todoItem == null)
             {
                 return NotFound();
@@ -105,10 +105,23 @@ namespace RollingGigApi.Controllers
             todoItem.Title = model.Title;
             todoItem.IsComplete = model.IsComplete;
             todoItem.LastModified = DateTime.Now;
-            todoItem.TodoItemTags = new List<TodoItemTag>();
+
+            var existingTags = new HashSet<long>(todoItem.TodoItemTags.Select(t => t.TagId));
+            var selectedTags = new HashSet<long>(model.Tags.Select(t => t.Id));
+            foreach (var todoItemTag in todoItem.TodoItemTags)
+            {
+                if (!selectedTags.Contains(todoItemTag.TagId))
+                {
+                    todoItem.TodoItemTags.Remove(todoItemTag);
+                }
+            }
             foreach (var tag in model.Tags)
             {
-                todoItem.TodoItemTags.Add(new TodoItemTag { TagId = tag.Id });
+                if (!existingTags.Contains(tag.Id))
+                {
+                    var todoItemTag = new TodoItemTag { TagId = tag.Id, TodoItemId = todoItem.Id };
+                    todoItem.TodoItemTags.Add(todoItemTag);
+                }
             }
 
             _context.Entry(todoItem).State = EntityState.Modified;
